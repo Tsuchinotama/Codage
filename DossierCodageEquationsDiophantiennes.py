@@ -2,36 +2,48 @@ from operator import itemgetter
 from collections import defaultdict
 import itertools
 
+def format_message(message):
+    list_lettres = []
+    for l in message:
+        if (ord(l) >= 97 and ord(l) <= 122) or (ord(l) >= 65 and ord(l) <= 90):
+            list_lettres.append(l.lower())
+    return list_lettres
+
 # fonction codant un message 
 
 def codage(a, b, message):
     L=list(message)
-    message_code=[]
+    message_code = ""
+    #message_code = []
     for l in L:
-        message_code.append(chr(((a*(ord(l)-97)+b)%26)+97))
+        message_code = message_code + chr(((a*(ord(l)-97)+b)%26)+97)
+        #message_code.append(chr(((a*(ord(l)-97)+b)%26)+97))
     return message_code
     
-Correspondance_decodage={1 : 1, 3 : 9, 5 : 21,7 : 15, 9 : 3, 11 : 19, 15 : 7, 17 : 23, 19 : 11, 21 : 5, 23 : 17, 25 : 25}
+Correspondance_decodage={1 : 1, 3 : 9, 5 : 21, 7 : 15, 9 : 3, 11 : 19, 15 : 7, 17 : 23, 19 : 11, 21 : 5, 23 : 17, 25 : 25}
     
 # fonction decodant un message en partant des coeffs affines de codage
     
 def decodage(a, b, message_code):
     L=list(message_code)
-    message=[]
+    message = ""
+    #message = []
     for l in L:
         a_dec=Correspondance_decodage[a]
-        message.append(chr((((a_dec*((ord(l)-97)-b))%26)+97)))
+        message = message + chr((((a_dec*((ord(l)-97)-b))%26)+97))
+        #message.append(chr((((a_dec*((ord(l)-97)-b))%26)+97)))
     return message
 
 # fonction renvoyant les lettres du message codé et le nombre de fois qu'elles apparaissent,en regroupant les lettres apparaissant le même nombre de fois
 
 def compte_lettres(message_code):
-    L=list(message_code)
+    L=list(message_code.lower())
     freq=dict()
     for i in range(97,123):
         freq[chr(i)] = 0
     for lettre in L:
-        freq[lettre] = freq[lettre]+1
+        if ord(lettre) >= 97 and ord(lettre) <= 122 :
+            freq[lettre] = freq[lettre]+1
     Lt=sorted(freq.items(), key=itemgetter(1), reverse=True)
     Llt=[[Lt[0]]]
     i=1
@@ -45,9 +57,18 @@ def compte_lettres(message_code):
         i=i+1
     return Llt
       
-# fonction renvoyant les décalages entre la(les) lettre(s) la et la(les) lettre(s) la(les) plus fréquente(s) en francais (plusieures si certaines lettres apparaissent un même nombre de fois dans le message codé)
+# fonction renvoyant les décalages entre la(les) lettre(s) les plus fréquentes du message et la(les) lettre(s) la(les) plus fréquente(s) en francais (plusieures si certaines lettres apparaissent un même nombre de fois dans le message codé)
 
-lettres_francais=['e','a','i','s','n','r','t','o','l','u','d','c','m','p','g','b','v','h','f','q','y','x','j','k','w','z']
+lettres_francais = ['e','a','i','s','n','r','t','o','l','u','d','c','m','p','g','b','v','h','f','q','y','x','j','k','w','z']
+
+decalage_standard = [[lettre] for lettre in lettres_francais] 
+
+# fonction créeant un message francais respectant les proportions ci-dessus (e apparait le plus de fois (26), puis a (25), et ainsi de suite)
+def message_type_francais():
+    message = ""
+    for i in range(26):
+        message = message + lettres_francais[i] * (26-i) + " "
+    return message
 
 def decalage_lettre(message_code):
     L=compte_lettres(message_code)
@@ -85,7 +106,8 @@ def coeffs_affine():
     Coeffs_possibles=[]
     for a in Coeffs_a:
         for b in range(26):
-            for lettre_et_codage in Faux_codage():
+            #for lettre_et_codage in Faux_codage():
+            for lettre_et_codage in decalage_lettre(codage(3,1,message_type_francais())):
                 if len(lettre_et_codage[0])==1:
                     if ((a*(ord(lettre_et_codage[0][0])-97)+b)%26)==(ord(lettre_et_codage[1][0])-97):
                         continue
